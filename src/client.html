@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metrics Client Example</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.5.6/jsoneditor.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.5.6/jsoneditor.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        #editor { width: 100%; height: 300px; }
+        .container { max-width: 600px; margin: auto; padding: 20px; }
+        .button { margin: 10px 0; transition: background-color 0.3s; }
+        .button:hover { opacity: 0.8; }
+        .date-picker { margin: 10px 0; }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4caf50;
+            color: white;
+            padding: 16px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container bg-white shadow-md rounded-lg p-6">
+        <h1 class="text-2xl font-bold mb-4">Send Metrics</h1>
+        <label for="operation" class="block mb-2">Operation:</label>
+        <input type="text" id="operation" placeholder="Enter operation" required class="border rounded p-2 w-full mb-4">
+        
+        <label for="simulateDay" class="block mb-2">Simulate a day:</label>
+        <input type="date" id="simulateDay" class="border rounded p-2 w-full mb-4">
+        
+        <div id="editor"></div>
+        
+        <button id="startButton" class="button bg-blue-500 text-white rounded p-2 w-full">Start</button>
+        <button id="stopButton" class="button bg-red-500 text-white rounded p-2 w-full" disabled>Stop</button>
+        
+        <div id="stateLabel" class="mt-4 text-gray-700">State: Not started</div> <!-- Added state label -->
+    </div>
+
+    <div id="toast" class="toast">Metric saved successfully</div>
+
+    <script>
+        let startTime, endTime, duration;
+        let calculating = false; // Flag to track calculating state
+        const editor = new JSONEditor(document.getElementById('editor'), { mode: 'code' });
+
+        document.getElementById('startButton').addEventListener('click', () => {
+            const operation = document.getElementById('operation').value;
+            if (!operation) {
+                showToast('Operation cannot be empty.'); // Use toast instead of alert
+                return; // Prevent starting if operation is empty
+            }
+            const simulateDay = document.getElementById('simulateDay').value;
+            startTime = simulateDay ? new Date(simulateDay) : new Date();
+            calculating = true; // Set calculating to true
+            document.getElementById('startButton').disabled = true;
+            document.getElementById('startButton').textContent = "Started"; // Change button label
+            document.getElementById('stopButton').disabled = false;
+            document.getElementById('stateLabel').textContent = "State: Running"; // Update state label
+        });
+
+        document.getElementById('stopButton').addEventListener('click', async () => {
+            const simulateDay = document.getElementById('simulateDay').value;
+            endTime = simulateDay ? new Date(simulateDay) : new Date();
+            endTime.setSeconds(endTime.getSeconds() + (new Date() - startTime) / 1000);
+            duration = (endTime - startTime) / 1000; // duration in seconds
+
+            const metric = {
+                operation: document.getElementById('operation').value,
+                startTime: startTime.toISOString(),
+                endTime: endTime.toISOString(),
+                duration: duration,
+                tags: editor.get()
+            };
+
+            try {
+                await axios.post('http://localhost:3000/api/metrics', metric, {
+                    headers: {
+                        'x-api-key': '8rb08k', // Replace with actual API key
+                        'Content-Type': 'application/json'
+                    }
+                });
+                showToast('Metric saved successfully');
+            } catch (error) {
+                console.error('Error saving metric:', error);
+                showToast('Failed to save metric');
+            }
+
+            calculating = false; // Reset calculating state
+            document.getElementById('startButton').disabled = false;
+            document.getElementById('startButton').textContent = "Start"; // Reset button label
+            document.getElementById('stopButton').disabled = true;
+            document.getElementById('stateLabel').textContent = "State: Not started"; // Update state label
+        });
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

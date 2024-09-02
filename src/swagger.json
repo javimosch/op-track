@@ -1,0 +1,78 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Metrics API",
+      "version": "1.0.0"
+    },
+    "paths": {
+      "/metrics": {
+        "post": {
+          "summary": "Create a new metric",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "operation": { "type": "string" },
+                    "startTime": { "type": "string", "format": "date-time" },
+                    "endTime": { "type": "string", "format": "date-time" },
+                    "duration": { "type": "number" },
+                    "tags": { "type": "object" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Metric created successfully"
+            }
+          }
+        },
+        "get": {
+          "summary": "Get metrics",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "operation",
+              "schema": { "type": "string" }
+            },
+            {
+              "in": "query",
+              "name": "startDate",
+              "schema": { "type": "string", "format": "date" }
+            },
+            {
+              "in": "query",
+              "name": "endDate",
+              "schema": { "type": "string", "format": "date" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Successful response",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "operation": { "type": "string" },
+                        "startTime": { "type": "string", "format": "date-time" },
+                        "endTime": { "type": "string", "format": "date-time" },
+                        "duration": { "type": "number" },
+                        "tags": { "type": "object" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }

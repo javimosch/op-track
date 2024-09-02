@@ -52,7 +52,7 @@ const User = mongoose.model("User", UserSchema);
 const ProjectSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   apiKey: { type: String, required: true, unique: true },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required:false },
 });
 
 const Project = mongoose.model("Project", ProjectSchema);
@@ -178,7 +178,7 @@ app.post(
       const project = new Project({
         name: req.body.name,
         apiKey: Math.random().toString(36).substring(7),
-        user: req.user.id,
+        user: req?.user?.id,
       });
       await project.save();
       res.status(201).json(project);
@@ -203,7 +203,7 @@ app.post(
       if (!project) {
         return res.status(404).json({ error: "Project not found" });
       }
-      if (project.user.toString() !== req.user.id) {
+      if (req?.user?.id && project.user.toString() !== req.user.id) {
         return res.status(403).json({ error: "Unauthorized" });
       }
       project.apiKey = Math.random().toString(36).substring(7);
@@ -356,9 +356,10 @@ app.get("/api/metrics", authenticateToken, async (req, res) => {
 
 app.get("/api/projects", authenticateToken, async (req, res) => {
   try {
-    const projects = await Project.find({ user: req.user.id });
+    const projects = req?.user?.id ? await Project.find({ user: req?.user?.id }) : await Project.find({});
     res.json(projects);
   } catch (error) {
+    console.log({error})
     res
       .status(500)
       .json({ error: "An error occurred while fetching projects" });

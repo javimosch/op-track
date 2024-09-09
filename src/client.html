@@ -31,6 +31,9 @@
 <body class="bg-gray-100">
     <div class="container bg-white shadow-md rounded-lg p-6">
         <h1 class="text-2xl font-bold mb-4">Send Metrics</h1>
+        <label for="apiToken">Api Token</label>
+        <input id="apiToken" placeholder="api-token"
+        required class="border rounded p-2 w-full mb-4" />
         <label for="operation" class="block mb-2">Operation:</label>
         <input type="text" id="operation" placeholder="Enter operation" required class="border rounded p-2 w-full mb-4">
         
@@ -78,13 +81,14 @@
                 startTime: startTime.toISOString(),
                 endTime: endTime.toISOString(),
                 duration: duration,
-                tags: editor.get()
+                tags: editor.get(),
+                _token: document.getElementById('apiToken').value
             };
 
             try {
                 await axios.post('http://localhost:3000/api/metrics', metric, {
                     headers: {
-                        'x-api-key': '8rb08k', // Replace with actual API key
+                        //'x-api-key': '8rb08k', // Replace with actual API key
                         'Content-Type': 'application/json'
                     }
                 });

@@ -6,6 +6,21 @@ import mongoose from "mongoose";
 
 const router = Router();
 
+export async function createMetric(metricData) {
+  const Metric = mongoose.model('Metric');
+  const metric = new Metric(metricData);
+  await metric.save();
+
+  await sendCustomEvent(metricData.operation, {
+    startTime: metricData.startTime,
+    endTime: metricData.endTime,
+    duration: metricData.duration,
+    ...metricData.tags,
+  });
+
+  return metric;
+}
+
 router.post(
   "/",
   body("operation").isString().notEmpty(),
@@ -14,7 +29,6 @@ router.post(
   body("duration").isNumeric(),
   body("tags").isObject(),
   async (req, res) => {
-    const Metric = mongoose.model('Metric')
     const Project = mongoose.model("Project");
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -27,35 +41,20 @@ router.post(
       });
       if (!project) return res.status(401).json({ error: "Invalid API key" });
 
-      const metric = new Metric({
+      const metricData = {
         project: project._id,
         operation: req.body.operation,
         startTime: req.body.startTime,
         endTime: req.body.endTime,
         duration: req.body.duration,
         tags: req.body.tags,
-      });
-      await metric.save();
+      };
 
-      sendCustomEvent(req.body.operation, {
-        startTime: req.body.startTime,
-        endTime: req.body.endTime,
-        duration: req.body.duration,
-        ...req.body.tags,
-      })
-        .then((r) => {
-          console.log("Signoz res", {
-            r,
-          });
-        })
-        .catch((err) => {
-          console.log(`Signoz error`, {
-            err,
-          });
-        });
+      await createMetric(metricData);
 
       res.status(201).json({ message: "Metric saved successfully" });
     } catch (error) {
+      console.error("Error creating metric:", error);
       res
         .status(500)
         .json({ error: "An error occurred while saving the metric" });
@@ -168,7 +167,9 @@ router.get("/", authenticateToken, async (req, res) => {
 
     const filter = Object.keys(query).reduce((acc, key) => {
       if (validFields.includes(key)) {
+        if(query[key]!==''){
         acc[key] = query[key];
+      }
       } else if (query[key] !== "") {
         const comparisonType = comparisonTypes.find(ct => ct.key === key);
         if (comparisonType) {

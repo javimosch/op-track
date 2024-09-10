@@ -11,7 +11,9 @@ import { authRoutes } from "./auth.js";
 import projectRoutes from "./routes/projects.js";
 import metricsRoutes from "./routes/metrics.js";
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
 import connectDb from "./db.js";
+import { configureAiRoutes } from "./ai.js";
 
 connectDb()
 
@@ -58,6 +60,7 @@ function setupRoutes(app, basicAuthMiddleware) {
   app.use("/api/metrics", metricsRoutes);
   authRoutes(app);
   projectRoutes(app)
+  configureAiRoutes(app)
 
   app.get("/client", basicAuthMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, "./client.html"));

@@ -1,13 +1,14 @@
 import { Router } from "express";
 import { body, validationResult } from "express-validator";
-import {authenticateToken} from '../auth.js'
+import { authenticateToken } from "../auth.js";
 import { sendCustomEvent } from "../signoz.js";
 import mongoose from "mongoose";
+const ISODate = ()=> new Date();
 
 const router = Router();
 
 export async function createMetric(metricData) {
-  const Metric = mongoose.model('Metric');
+  const Metric = mongoose.model("Metric");
   const metric = new Metric(metricData);
   await metric.save();
 
@@ -59,12 +60,12 @@ router.post(
         .status(500)
         .json({ error: "An error occurred while saving the metric" });
     }
-  },
+  }
 );
 
 router.get("/export", authenticateToken, async (req, res) => {
   try {
-    const Metric = mongoose.model('Metric')
+    const Metric = mongoose.model("Metric");
     const query = { ...req.query };
     // Apply filters similar to the metrics retrieval
     const validFields = [
@@ -121,18 +122,10 @@ router.get("/export", authenticateToken, async (req, res) => {
   }
 });
 
-/**
- * example:
- * http://localhost:5173/api/metrics?project=v3&operation=search_location_history&clientName=DGD&comparisonTypes=clientName-equal
- * 
- * comparisonTypes = ['equal', 'greater-than', 'lower-than', 'string-contains', 'in'];
-Request Method:
-GET
- */
 router.get("/", authenticateToken, async (req, res) => {
   try {
     const Project = mongoose.model("Project");
-    const Metric = mongoose.model('Metric')
+    const Metric = mongoose.model("Metric");
     const query = { ...req.query };
     if (query.startDate) {
       query.startTime = { $gte: new Date(query.startDate) };
@@ -151,10 +144,12 @@ router.get("/", authenticateToken, async (req, res) => {
       }
     }
 
-    const comparisonTypes = query.comparisonTypes ? query.comparisonTypes.split('|').map(typeStr => {
-      const [key, type] = typeStr.split('-');
-      return { key, type };
-    }) : [];
+    const comparisonTypes = query.comparisonTypes
+      ? query.comparisonTypes.split("|").map((typeStr) => {
+          const [key, type] = typeStr.split("-");
+          return { key, type };
+        })
+      : [];
     delete query.comparisonTypes;
 
     const validFields = [
@@ -167,27 +162,27 @@ router.get("/", authenticateToken, async (req, res) => {
 
     const filter = Object.keys(query).reduce((acc, key) => {
       if (validFields.includes(key)) {
-        if(query[key]!==''){
-        acc[key] = query[key];
-      }
+        if (query[key] !== "") {
+          acc[key] = query[key];
+        }
       } else if (query[key] !== "") {
-        const comparisonType = comparisonTypes.find(ct => ct.key === key);
+        const comparisonType = comparisonTypes.find((ct) => ct.key === key);
         if (comparisonType) {
           switch (comparisonType.type) {
-            case 'equal':
+            case "equal":
               acc[`tags.${key}`] = query[key];
               break;
-            case 'greaterThan':
+            case "greaterThan":
               acc[`tags.${key}`] = { $gt: parseFloat(query[key]) };
               break;
-            case 'lowerThan':
+            case "lowerThan":
               acc[`tags.${key}`] = { $lt: parseFloat(query[key]) };
               break;
-            case 'stringContains':
-              acc[`tags.${key}`] = { $regex: query[key], $options: 'i' };
+            case "stringContains":
+              acc[`tags.${key}`] = { $regex: query[key], $options: "i" };
               break;
-            case 'in':
-              acc[`tags.${key}`] = { $in: query[key].split(',') };
+            case "in":
+              acc[`tags.${key}`] = { $in: query[key].split(",") };
               break;
             default:
               acc[`tags.${key}`] = query[key];
@@ -208,4 +203,32 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
-export default router
+// New route for aggregation using Mongoose
+router.post("/aggregate", async (req, res) => {
+  try {
+    const Metric = mongoose.model("Metric");
+    let query
+    try {
+      eval(`query = ${req.body.query};`);
+    } catch (err) {
+      console.log("Invalid aggregate query", {
+        err,
+      });
+      return res.status(400).json({ error: "Invalid aggregate query" });
+    }
+    if (!query || !Array.isArray(query)) {
+      return res
+        .status(400)
+        .json({ error: "Invalid aggregate query (Not an array)" });
+    }
+
+    const result = await Metric.aggregate(query);
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error in aggregate query:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+export default router;

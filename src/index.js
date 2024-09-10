@@ -71,7 +71,7 @@ function setupRoutes(app, basicAuthMiddleware) {
     res.sendFile(path.join(__dirname, "./client.html"));
   });
 
-  app.get("*", (req, res) => {
+  app.get("*", basicAuthMiddleware,(req, res) => {
     res.sendFile(path.join(__dirname, "./client/dist/index.html"));
   });
 }

@@ -3,7 +3,7 @@ import { body, validationResult } from "express-validator";
 import { authenticateToken } from "../auth.js";
 import { sendCustomEvent } from "../signoz.js";
 import mongoose from "mongoose";
-const ISODate = ()=> new Date();
+const ISODate = () => new Date();
 
 const router = Router();
 
@@ -12,12 +12,14 @@ export async function createMetric(metricData) {
   const metric = new Metric(metricData);
   await metric.save();
 
-  await sendCustomEvent(metricData.operation, {
-    startTime: metricData.startTime,
-    endTime: metricData.endTime,
-    duration: metricData.duration,
-    ...metricData.tags,
-  });
+  if (process.env.SIGNOZ_ENABLED === "1") {
+    await sendCustomEvent(metricData.operation, {
+      startTime: metricData.startTime,
+      endTime: metricData.endTime,
+      duration: metricData.duration,
+      ...metricData.tags,
+    });
+  }
 
   return metric;
 }
@@ -207,7 +209,7 @@ router.get("/", authenticateToken, async (req, res) => {
 router.post("/aggregate", async (req, res) => {
   try {
     const Metric = mongoose.model("Metric");
-    let query
+    let query;
     try {
       eval(`query = ${req.body.query};`);
     } catch (err) {

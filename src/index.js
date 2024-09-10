@@ -14,6 +14,11 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 import connectDb from "./db.js";
 import { configureAiRoutes } from "./ai.js";
+import { startSignoz } from "../signoz.js";
+
+if(process.env.SIGNOZ_ENABLED==='1'){
+  startSignoz()
+}
 
 connectDb()
 

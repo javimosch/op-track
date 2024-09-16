@@ -19,7 +19,7 @@ const templates = [
 
 // Configuration
 const config = {
-  numberOfEvents: 1000,
+  numberOfEvents: 200,
   startDate: new Date('2024-08-01'),
   endDate: new Date('2024-08-31'),
   minDuration: 5,  // in seconds
@@ -54,12 +54,15 @@ function getRandomTemplate() {
 // Main function to generate and insert batch events
 async function generateBatchEvents() {
   const Project = mongoose.model('Project');
-  const project = await Project.findOne(); // Assuming you have at least one project in the database
+  const project = await Project.findOne({ name: 'test' }); // Assuming you have at least one project in the database
 
   if (!project) {
     console.error('No project found in the database');
     return;
   }
+
+  const Metric = mongoose.model('Metric'); // Assuming you have a Metric model
+  const bulkOps = [];
 
   for (let i = 0; i < config.numberOfEvents; i++) {
     const template = getRandomTemplate();
@@ -69,7 +72,15 @@ async function generateBatchEvents() {
 
     const metricData = {
       project: project._id,
-      operation: 'batch_test_operation',
+      operation: [
+        'location_realtime',
+        'location_history',
+        'events',
+        'messages',
+        'alerts',
+        'diagnostics'
+      ][Math.floor(Math.random() * 6)],
+
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
       duration: duration,
@@ -79,16 +90,23 @@ async function generateBatchEvents() {
       },
     };
 
-    try {
-      await createMetric(metricData);
-      console.log(`Inserted metric ${i + 1}`);
-    } catch (error) {
-      console.error(`Error inserting metric ${i + 1}:`, error);
-    }
+    bulkOps.push({
+      insertOne: {
+        document: metricData,
+      },
+    });
+  }
+
+  try {
+    const bulkWriteResult = await Metric.bulkWrite(bulkOps);
+    console.log(`Inserted ${bulkWriteResult.insertedCount} metrics`);
+  } catch (error) {
+    console.error('Error inserting metrics:', error);
   }
 
   console.log('Batch insertion completed');
   mongoose.disconnect();
 }
+
 
 generateBatchEvents();

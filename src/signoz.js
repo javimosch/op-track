@@ -7,6 +7,7 @@ import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 
 export function startSignoz() {
   const serviceName = process.env.SIGNOZ_SERVICE_NAME||"opTrack";
+  
   const host = process.env.SIGNOZ_HOST||'http://localhost:4318'
 
   // Create the exporter
@@ -33,6 +34,8 @@ export function startSignoz() {
 }
 
 export function sendCustomEvent(eventName, properties) {
+  const serviceName = process.env.SIGNOZ_SERVICE_NAME||"opTrack";
+  
   console.log("signoz sendCustomEvent", {
     eventName,
     properties,

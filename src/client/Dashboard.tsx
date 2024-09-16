@@ -23,6 +23,11 @@ const Dashboard = () => {
     aggregatedFields: {},
     metrics: []
   }));
+
+  useEffect(() => {
+    console.log('aggregationSettings updated:', aggregationSettings);
+  }, [aggregationSettings]);
+  
   const [aggregateQuery, setAggregateQuery] = useState('');
   const [naturalLanguageQuery, setNaturalLanguageQuery] = useState('');
   const [isAggregateView, setIsAggregateView] = useState(false);

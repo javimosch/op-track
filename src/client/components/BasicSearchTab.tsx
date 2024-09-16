@@ -1,11 +1,12 @@
 import React from 'react';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement, TimeScale } from 'chart.js';
-import { Line, Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement, TimeScale, ArcElement } from 'chart.js';
+import { Line, Bar, Doughnut, Pie } from 'react-chartjs-2';
 import ExportFeature from '../ExportButton';
 import GraphSettings from './GraphSettings';
 import AggregationSettings from './AggregationSettings';
 import { prepareChartData, getChartOptions } from '../utils/chartUtils';
 
+// Register chart components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -15,7 +16,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  TimeScale
+  TimeScale,
+  ArcElement
 );
 
 const BasicSearchTab = ({ 
@@ -39,10 +41,16 @@ const BasicSearchTab = ({
   setSelectedMetric 
 }) => {
   const chartData = prepareChartData(metrics, graphSettings, aggregationSettings);
+  // Validate if 'chartData' is provided
+  if (!chartData || !chartData.datasets.length) {
+    return <div>No data available for the current filters.</div>;
+  }
+
   const options = getChartOptions(graphSettings, metrics, setSelectedMetric);
 
   return (
     <div>
+      
       <div className="mb-6">
         <h2 className="text-xl font-bold mb-4">Basic Search</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -129,20 +137,25 @@ const BasicSearchTab = ({
         availableFields={metrics.length > 0 ? [...Object.keys(metrics[0]), ...Object.keys(metrics[0].tags || {})] : []}
       />
 
-      <GraphSettings settings={graphSettings} onSettingsChange={setGraphSettings} aggregationSettings={aggregationSettings} />
+      <GraphSettings rawData={metrics} settings={graphSettings} onSettingsChange={setGraphSettings} aggregationSettings={aggregationSettings} />
 
-      {chartData.datasets.length > 0 && (
+
+      { 
         graphSettings.type === 'line' ? (
           <Line data={chartData} options={options} />
-        ) : (
+        ) : graphSettings.type === 'bar' ? (
           <Bar data={chartData} options={options} />
-        )
-      )}
+        ) : graphSettings.type === 'doughnut' ? (
+          <Doughnut data={chartData} options={options} />
+        ) : graphSettings.type === 'pie' ? (
+          <Pie data={chartData} options={options} />
+        ) : null 
+      }
 
       <div className="mt-6">
         <ExportFeature filters={filters} buttonText="Export as CSV" />
       </div>
-
+      
       {selectedMetric && (
         <div className="mt-6 p-4 bg-white rounded shadow-md">
           <h2 className="text-lg font-bold mb-2">Operation Details</h2>

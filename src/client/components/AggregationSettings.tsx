@@ -11,6 +11,14 @@ interface AggregationSettingsProps {
 }
 
 const AggregationSettings: React.FC<AggregationSettingsProps> = ({ settings, onSettingsChange, availableFields }) => {
+  const handleReset = () => {
+    onSettingsChange({
+      groupBy: [],
+      aggregatedFields: {},
+      metrics: settings.metrics, // Assuming metrics should not be reset
+    });
+  };
+
   return (
     <div className="mb-6 p-4 bg-white rounded shadow-md">
       <h3 className="text-lg font-semibold mb-2">Front-end Aggregation</h3>
@@ -48,6 +56,14 @@ const AggregationSettings: React.FC<AggregationSettingsProps> = ({ settings, onS
             ))}
           </select>
         </div>
+      </div>
+      <div className="mt-4">
+        <button
+          onClick={handleReset}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+        >
+          Reset Aggregation
+        </button>
       </div>
     </div>
   );

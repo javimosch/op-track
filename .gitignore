@@ -5,3 +5,5 @@ node_modules
 tmp
 deploy.json
 src/client/dist/
+tmp
+/tmp

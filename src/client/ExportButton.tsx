@@ -1,6 +1,11 @@
 import axios from "axios";
 
-const ExportFeature = ({ filters }) => {
+interface ExportFeatureProps {
+  filters: any;
+  buttonText: string;
+}
+
+const ExportFeature: React.FC<ExportFeatureProps> = ({ filters, buttonText }) => {
   const handleExport = async () => {
     try {
       const response = await axios.get("/api/metrics/export", {
@@ -24,7 +29,7 @@ const ExportFeature = ({ filters }) => {
       onClick={handleExport}
       className="bg-blue-500 text-white p-2 rounded mb-2 mt-2"
     >
-      Export Metrics
+      {buttonText}
     </button>
   );
 };

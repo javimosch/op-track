@@ -35,7 +35,7 @@ const App = () => {
       <nav className="bg-white shadow-md p-4 flex justify-between items-center rounded-lg">
         <div className="flex items-center space-x-6">
           <Link to="/" className="text-lg font-bold text-green-600">Dashboard</Link>
-          <a href={`${import.meta.env.VITE_SERVER_URL}/client`} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-green-600 transition duration-300">Client demo</a>
+          <a href={`${import.meta.env.VITE_SERVER_URL}/client`} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-green-600 transition duration-300">Test form</a>
           <a href="/api-docs" className="text-gray-700 hover:text-green-600 transition duration-300">Swagger docs</a>
           {token && (
             <>
@@ -44,7 +44,7 @@ const App = () => {
             </>
           )}
         </div>
-        <div className="flex items-center space-x-6">
+        {/* <div className="flex items-center space-x-6">
           {token ? (
             <>
               <span className="text-gray-800">{localStorage.getItem('email')}</span>
@@ -56,14 +56,19 @@ const App = () => {
               <Link to="/register" className="text-gray-700 hover:text-green-600 transition duration-300">Register</Link>
             </>
           )}
-        </div>
+        </div> */}
       </nav>
       <Routes>
-        <Route path="/login" element={<Login setToken={setToken} />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/create-project" element={token ? <ProjectCreation /> : <Navigate to="/login" />} />
-        <Route path="/" element={token ? <Dashboard /> : <Navigate to="/login" />} />
-        <Route path="/projects" element={token ? <ProjectList /> : <Navigate to="/login" />} />
+        {/* <Route path="/login" element={<Login setToken={setToken} />} />
+        <Route path="/register" element={<Register />} /> */}
+        {/* <Route path="/create-project" element={token ? <ProjectCreation /> : <Navigate to="/login" />} /> */}
+        {/* <Route path="/" element={token ? <Dashboard /> : <Navigate to="/login" />} /> */}
+        {/* <Route path="/projects" element={token ? <ProjectList /> : <Navigate to="/login" />} /> */}
+        
+        {/* Public */}
+        <Route path="/create-project" element={<ProjectCreation />} />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/projects" element={<ProjectList />} />
       </Routes>
     </Router>
   );

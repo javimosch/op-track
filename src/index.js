@@ -7,13 +7,14 @@ import fs from "fs";
 import path from "path";
 import swaggerUi from "swagger-ui-express";
 import { fileURLToPath } from "url";
-import { authRoutes } from "./auth.js";
-import projectRoutes from "./routes/projects.js";
+import configureProjectApiRoutes from "./routes/projects.js";
 import metricsRoutes from "./routes/metrics.js";
+import {authenticateToken} from './auth.js'
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 import connectDb from "./db.js";
-import { configureAiRoutes } from "./ai.js";
+import configureAiApiRoutes from "./ai.js";
+
 import { startSignoz } from "./signoz.js";
 
 if(process.env.SIGNOZ_ENABLED==='1'){
@@ -43,6 +44,7 @@ function setupBasicAuth() {
 }
 
 function setupMiddleware(app) {
+  
   app.use(cors());
   app.use(express.json());
 }
@@ -63,15 +65,18 @@ function setupStaticFiles(app) {
 function setupRoutes(app, basicAuthMiddleware) {
 
   app.use("/api/metrics", metricsRoutes);
-  authRoutes(app);
-  projectRoutes(app)
-  configureAiRoutes(app)
+
+  //authRoutes(app);
+
+
+  app.use('/api', authenticateToken)
+  configureProjectApiRoutes(app)
+  configureAiApiRoutes(app)
 
   app.get("/client", basicAuthMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, "./client.html"));
   });
-
-  app.get("*", basicAuthMiddleware,(req, res) => {
+  app.get("/", basicAuthMiddleware,(req, res) => {
     res.sendFile(path.join(__dirname, "./client/dist/index.html"));
   });
 }
@@ -86,8 +91,9 @@ function setupErrorHandler(app) {
 const basicAuthMiddleware = setupBasicAuth();
 setupMiddleware(app);
 setupSwagger(app, basicAuthMiddleware);
-setupStaticFiles(app);
+
 setupRoutes(app, basicAuthMiddleware);
+setupStaticFiles(app);
 setupErrorHandler(app);
 
 const port = process.env.PORT || 3000;

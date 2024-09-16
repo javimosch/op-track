@@ -43,7 +43,7 @@ export async function generateAggregatePipeline(naturalQuery="") {
   return chatCompletion.choices[0].message.content;
 }
 
-export function configureAiRoutes(app){
+export default function(app){
     // Expose a route to retrieve result from generateAggregatePipeline
     app.post('/api/generate-aggregate-query', async (req, res) => {
         try {

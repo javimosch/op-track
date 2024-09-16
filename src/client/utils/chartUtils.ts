@@ -230,6 +230,13 @@ export const getChartOptions = (
         },
       },
     },
+    ...(isPieOrDoughnut?{}:{onClick: (event: any, elements: any[]) => {
+      if (elements.length > 0) {
+        const index = elements[0].index;
+        const metric = aggregateData(metrics, { groupBy: [], aggregatedFields: {}, metrics })[index];
+        setSelectedMetric(metric);
+      }
+    }}),
     scales: isPieOrDoughnut
       ? undefined
       : {

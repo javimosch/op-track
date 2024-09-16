@@ -197,7 +197,7 @@ router.get("/", authenticateToken, async (req, res) => {
     }, {});
 
     console.log({ filter });
-    const metrics = await Metric.find(filter);
+    const metrics = await Metric.find(filter).sort({ startTime: 1 });
     res.json(metrics);
   } catch (error) {
     console.error("Error fetching metrics:", error); // Log error to console

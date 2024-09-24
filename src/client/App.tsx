@@ -37,7 +37,7 @@ const App = () => {
           <Link to="/" className="text-lg font-bold text-green-600">Dashboard</Link>
           <a href={`${import.meta.env.VITE_SERVER_URL}/client`} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-green-600 transition duration-300">Test form</a>
           <a href="/api-docs" className="text-gray-700 hover:text-green-600 transition duration-300">Swagger docs</a>
-          {token && (
+          {true && (
             <>
               <Link to="/projects" className="text-gray-700 hover:text-green-600 transition duration-300">Projects</Link>
               <Link to="/create-project" className="text-gray-700 hover:text-green-600 transition duration-300">Create Project</Link>

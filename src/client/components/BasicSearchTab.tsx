@@ -41,12 +41,15 @@ const BasicSearchTab = ({
   setSelectedMetric 
 }) => {
   const chartData = prepareChartData(metrics, graphSettings, aggregationSettings);
-  // Validate if 'chartData' is provided
-  if (!chartData || !chartData.datasets.length) {
-    return <div>No data available for the current filters.</div>;
-  }
+  
+  console.log('chartData',{
+    chartData
+  })
+  
+ 
 
   const options = getChartOptions(graphSettings, metrics, setSelectedMetric);
+
 
   return (
     <div>
@@ -131,6 +134,11 @@ const BasicSearchTab = ({
         </button>
       </div>
 
+      {/* Check if chartData is available before rendering aggregation and graph settings */}
+      {!chartData || !chartData.datasets.length ? (
+        <div>No data available for the current filters.</div>
+      ) : (
+        <>
       <AggregationSettings
         settings={aggregationSettings}
         onSettingsChange={setAggregationSettings}
@@ -139,8 +147,7 @@ const BasicSearchTab = ({
 
       <GraphSettings rawData={metrics} settings={graphSettings} onSettingsChange={setGraphSettings} aggregationSettings={aggregationSettings} />
 
-
-      { 
+          { 
         graphSettings.type === 'line' ? (
           <Line data={chartData} options={options} />
         ) : graphSettings.type === 'bar' ? (
@@ -149,7 +156,7 @@ const BasicSearchTab = ({
           <Doughnut data={chartData} options={options} />
         ) : graphSettings.type === 'pie' ? (
           <Pie data={chartData} options={options} />
-        ) : null 
+            ) : null 
       }
 
       <div className="mt-6">
@@ -165,6 +172,8 @@ const BasicSearchTab = ({
             </div>
           ))}
         </div>
+      )}
+        </>
       )}
     </div>
   );
